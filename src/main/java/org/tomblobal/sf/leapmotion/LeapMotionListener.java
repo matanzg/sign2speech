@@ -3,14 +3,17 @@ package org.tomblobal.sf.leapmotion;
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.State;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
  * Created by Matan on 9/10/2015.
  */
 public class LeapMotionListener extends Listener {
-    private Map<String, String> _currentData;
+    private Controller currentController;
+    private final AtomicBoolean isCollectingData = new AtomicBoolean(false);
 
     public void onInit(Controller controller) {
         System.out.println("Initialized");
@@ -25,7 +28,6 @@ public class LeapMotionListener extends Listener {
     }
 
     public void onDisconnect(Controller controller) {
-        //Note: not dispatched when running in a debugger.
         System.out.println("Disconnected");
     }
 
@@ -34,63 +36,75 @@ public class LeapMotionListener extends Listener {
     }
 
     public void onFrame(Controller controller) {
+
+        if (isCollectingData.get()) {
+            return;
+        }
+
+        currentController = controller;
+        getControllerData(controller);
+    }
+
+    private Map<String, String> getControllerData(Controller controller) {
+
+        if (controller == null) {
+            return new HashMap<>();
+        }
+
+        Map<String, String> trace = new HashMap<>();
         // Get the most recent frame and report some basic information
         Frame frame = controller.frame();
-        System.out.println("Frame id: " + frame.id()
-                + ", timestamp: " + frame.timestamp()
-                + ", hands: " + frame.hands().count()
-                + ", fingers: " + frame.fingers().count()
-                + ", tools: " + frame.tools().count()
-                + ", gestures " + frame.gestures().count());
+
+        report(trace, "hands_count", frame.hands().count());
+        report(trace, "fingers_count", frame.fingers().count());
+        report(trace, "gestures_count", frame.gestures().count());
 
         //Get hands
         for (Hand hand : frame.hands()) {
-            String handType = hand.isLeft() ? "Left hand" : "Right hand";
-            System.out.println("  " + handType + ", id: " + hand.id()
-                    + ", palm position: " + hand.palmPosition());
+            String handPrefix = hand.isLeft() ? "_L_" : "_R_";
+            report(trace, handPrefix + "isLeft", hand.isLeft());
+            report(trace, handPrefix + "palmPosition", hand.palmPosition());
+            report(trace, handPrefix + "palmNormal", hand.palmNormal());
+            report(trace, handPrefix + "palmDirection", hand.direction());
 
-            // Get the hand's normal vector and direction
             Vector normal = hand.palmNormal();
             Vector direction = hand.direction();
 
             // Calculate the hand's pitch, roll, and yaw angles
-            System.out.println("  pitch: " + Math.toDegrees(direction.pitch()) + " degrees, "
-                    + "roll: " + Math.toDegrees(normal.roll()) + " degrees, "
-                    + "yaw: " + Math.toDegrees(direction.yaw()) + " degrees");
+            report(trace, handPrefix + "pitch", Math.toDegrees(direction.pitch()));
+            report(trace, handPrefix + "roll", Math.toDegrees(normal.roll()));
+            report(trace, handPrefix + "yaw", Math.toDegrees(direction.yaw()));
 
             // Get arm bone
             Arm arm = hand.arm();
-            System.out.println("  Arm direction: " + arm.direction()
-                    + ", wrist position: " + arm.wristPosition()
-                    + ", elbow position: " + arm.elbowPosition());
+            report(trace, handPrefix + "arm_direction", arm.direction());
+            report(trace, handPrefix + "arm_wristPos", arm.wristPosition());
+            report(trace, handPrefix + "arm_elbowPos", arm.elbowPosition());
 
             // Get fingers
             for (Finger finger : hand.fingers()) {
-                System.out.println("    " + finger.type() + ", id: " + finger.id()
-                        + ", length: " + finger.length()
-                        + "mm, width: " + finger.width() + "mm");
+
+                String fingerPrefix = handPrefix + "_Finger_" + finger.type() + "_";
+                report(trace, fingerPrefix + "lengthMM", finger.length());
+                report(trace, fingerPrefix + "widthMM", finger.width());
 
                 //Get Bones
                 for (Bone.Type boneType : Bone.Type.values()) {
                     Bone bone = finger.bone(boneType);
-                    System.out.println("      " + bone.type()
-                            + " bone, start: " + bone.prevJoint()
-                            + ", end: " + bone.nextJoint()
-                            + ", direction: " + bone.direction());
+                    String bonePrefix = fingerPrefix + "_BoneType_" + boneType + "_";
+                    report(trace, bonePrefix + "start", bone.prevJoint());
+                    report(trace, bonePrefix + "end", bone.nextJoint());
+                    report(trace, bonePrefix + "direction", bone.direction());
                 }
             }
-        }
-
-        // Get tools
-        for (Tool tool : frame.tools()) {
-            System.out.println("  Tool id: " + tool.id()
-                    + ", position: " + tool.tipPosition()
-                    + ", direction: " + tool.direction());
         }
 
         GestureList gestures = frame.gestures();
         for (int i = 0; i < gestures.count(); i++) {
             Gesture gesture = gestures.get(i);
+            String gestureId = "gesture_" + gesture.id() + "_";
+            report(trace, gestureId + "_type", gesture.type().toString());
+            report(trace, gestureId + "_state", gesture.state().toString());
 
             switch (gesture.type()) {
                 case TYPE_CIRCLE:
@@ -112,48 +126,71 @@ public class LeapMotionListener extends Listener {
                         sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * Math.PI;
                     }
 
-                    System.out.println("  Circle id: " + circle.id()
-                            + ", " + circle.state()
-                            + ", progress: " + circle.progress()
-                            + ", radius: " + circle.radius()
-                            + ", angle: " + Math.toDegrees(sweptAngle)
-                            + ", " + clockwiseness);
+                    report(trace, gestureId + "progress", circle.progress());
+                    report(trace, gestureId + "radius", circle.radius());
+                    report(trace, gestureId + "angle", Math.toDegrees(sweptAngle));
+                    report(trace, gestureId + "direction", clockwiseness);
+
                     break;
                 case TYPE_SWIPE:
                     SwipeGesture swipe = new SwipeGesture(gesture);
-                    System.out.println("  Swipe id: " + swipe.id()
-                            + ", " + swipe.state()
-                            + ", position: " + swipe.position()
-                            + ", direction: " + swipe.direction()
-                            + ", speed: " + swipe.speed());
+                    report(trace, gestureId + "position", swipe.position());
+                    report(trace, gestureId + "direction", swipe.direction());
+                    report(trace, gestureId + "speed", swipe.speed());
+                    report(trace, gestureId + "startPosition", swipe.startPosition());
+
                     break;
                 case TYPE_SCREEN_TAP:
                     ScreenTapGesture screenTap = new ScreenTapGesture(gesture);
-                    System.out.println("  Screen Tap id: " + screenTap.id()
-                            + ", " + screenTap.state()
-                            + ", position: " + screenTap.position()
-                            + ", direction: " + screenTap.direction());
+                    report(trace, gestureId + "position", screenTap.position());
+                    report(trace, gestureId + "direction", screenTap.direction());
+                    report(trace, gestureId + "progress", screenTap.progress());
                     break;
                 case TYPE_KEY_TAP:
                     KeyTapGesture keyTap = new KeyTapGesture(gesture);
-                    System.out.println("  Key Tap id: " + keyTap.id()
-                            + ", " + keyTap.state()
-                            + ", position: " + keyTap.position()
-                            + ", direction: " + keyTap.direction());
-                    break;
-                default:
-                    System.out.println("Unknown gesture type.");
+                    report(trace, gestureId + "position", keyTap.position());
+                    report(trace, gestureId + "direction", keyTap.direction());
+                    report(trace, gestureId + "progress", keyTap.progress());
+                    //+ ", direction: " + keyTap.pointable());
                     break;
             }
         }
 
-        if (!frame.hands().isEmpty() || !gestures.isEmpty()) {
-            System.out.println();
+        return trace;
+    }
+
+    private void report(Map<String, String> trace, String event, boolean value) {
+        report(trace, event, String.valueOf(value));
+    }
+
+    private void report(Map<String, String> trace, String event, int value) {
+        report(trace, event, String.valueOf(value));
+    }
+
+    private void report(Map<String, String> trace, String event, double value) {
+        report(trace, event, String.format("%.3f", value));
+    }
+
+    private void report(Map<String, String> trace, String event, Vector value) {
+        report(trace, event + "X", String.valueOf(value.getX()));
+        report(trace, event + "Y", String.valueOf(value.getY()));
+        report(trace, event + "Z", String.valueOf(value.getZ()));
+    }
+
+    private void report(Map<String, String> trace, String event, String value) {
+        synchronized (this) {
+            trace.put("Leap_" + event, value);
         }
     }
 
     public Map<String, String> getCurrentData() {
-        return _currentData;
+        synchronized (this) {
+            isCollectingData.set(true);
+            Map<String, String> controllerData = getControllerData(currentController);
+            currentController = null;
+            isCollectingData.set(false);
+            return controllerData;
+        }
     }
 }
 

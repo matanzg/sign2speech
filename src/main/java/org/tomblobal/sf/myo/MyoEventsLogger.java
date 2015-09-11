@@ -12,7 +12,7 @@ import com.thalmic.myo.enums.*;
 public class MyoEventsLogger implements DeviceListener {
 
     private final List<Myo> _knownMyos = new ArrayList<>();
-    private final Map<String, String> _currentData = new HashMap<>();
+    private Map<String, String> _currentData = new HashMap<>();
 
     @Override
     public void onPair(Myo myo, long timestamp, FirmwareVersion firmwareVersion) {
@@ -45,24 +45,17 @@ public class MyoEventsLogger implements DeviceListener {
 
     @Override
     public void onOrientationData(Myo myo, long timestamp, Quaternion rotation) {
-        _currentData.put("myo" + identifyMyo(myo) + "rotationW", String.valueOf(rotation.getW()));
-        _currentData.put("myo" + identifyMyo(myo) + "rotationX", String.valueOf(rotation.getX()));
-        _currentData.put("myo" + identifyMyo(myo) + "rotationY", String.valueOf(rotation.getY()));
-        _currentData.put("myo" + identifyMyo(myo) + "rotationZ", String.valueOf(rotation.getZ()));
+        report(myo, "rotation_", rotation);
     }
 
     @Override
     public void onAccelerometerData(Myo myo, long timestamp, Vector3 accel) {
-        _currentData.put("myo" + identifyMyo(myo) + "accelX", String.valueOf(accel.getX()));
-        _currentData.put("myo" + identifyMyo(myo) + "accelY", String.valueOf(accel.getY()));
-        _currentData.put("myo" + identifyMyo(myo) + "accelZ", String.valueOf(accel.getZ()));
+        report(myo, "acceleration_", accel);
     }
 
     @Override
     public void onGyroscopeData(Myo myo, long timestamp, Vector3 gyro) {
-        _currentData.put("myo" + identifyMyo(myo) + "gyroX", String.valueOf(gyro.getX()));
-        _currentData.put("myo" + identifyMyo(myo) + "gyroY", String.valueOf(gyro.getY()));
-        _currentData.put("myo" + identifyMyo(myo) + "gyroZ", String.valueOf(gyro.getZ()));
+        report(myo, "gyro_", String.valueOf(gyro.getX()));
     }
 
     @Override
@@ -72,7 +65,7 @@ public class MyoEventsLogger implements DeviceListener {
     @Override
     public void onEmgData(Myo myo, long timestamp, byte[] emg) {
         for (int i = 0; i < emg.length; i++) {
-            _currentData.put("myo" + identifyMyo(myo) + "emg" + i, String.valueOf(emg[i]));
+            report(myo, "emg" + i, String.valueOf(emg[i]));
         }
     }
 
@@ -86,7 +79,7 @@ public class MyoEventsLogger implements DeviceListener {
 
     @Override
     public void onPose(Myo myo, long timestamp, Pose pose) {
-        _currentData.put("myo" + identifyMyo(myo) + "pose", pose.toString());
+        report(myo, "pose", pose.toString());
     }
 
     @Override
@@ -103,7 +96,7 @@ public class MyoEventsLogger implements DeviceListener {
     }
 
     private int identifyMyo(Myo myo) {
-        if (myo == null){
+        if (myo == null) {
             return 0;
         }
 
@@ -116,7 +109,32 @@ public class MyoEventsLogger implements DeviceListener {
         return _knownMyos.indexOf(myo) + 1;
     }
 
+    private void report(Myo myo, String key, Quaternion value) {
+        report(myo, key + "W", String.valueOf(value.getW()));
+        report(myo, key + "X", String.valueOf(value.getX()));
+        report(myo, key + "Y", String.valueOf(value.getY()));
+        report(myo, key + "Z", String.valueOf(value.getZ()));
+    }
+
+
+    private void report(Myo myo, String key, Vector3 value) {
+        report(myo, key + "X", String.valueOf(value.getX()));
+        report(myo, key + "Y", String.valueOf(value.getY()));
+        report(myo, key + "Z", String.valueOf(value.getZ()));
+    }
+
+    private void report(Myo myo, String key, String value) {
+
+        synchronized (this) {
+            _currentData.put("myo" + identifyMyo(myo) + "_" + key, value);
+        }
+    }
+
     public Map<String, String> getCurrentData() {
-        return _currentData;
+        synchronized (this) {
+            Map<String, String> state = _currentData;
+            _currentData = new HashMap<>();
+            return state;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package org.tomblobal.sf;
 
+import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.myo.MyoEventSampler;
 
 import java.io.FileWriter;
@@ -20,19 +21,42 @@ public class EventSamplingApp {
 
     public static void main(String[] args) {
 
-        //try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
-        try (IEventSampler myoSampler = new MyoEventSampler()) {
-            for (char alphabet = 'A'; alphabet <= 'D'; alphabet++) {
-                sampleWord(String.valueOf(alphabet),
-                        //leapMotionSampler,
-                        myoSampler);
+        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
+            try (IEventSampler myoSampler = new MyoEventSampler()) {
+                printData(leapMotionSampler, myoSampler);
+
+                for (char alphabet = 'A'; alphabet <= 'D'; alphabet++) {
+                    sampleWord(String.valueOf(alphabet)
+                            , leapMotionSampler
+                            , myoSampler
+                    );
+                }
             }
-//            }
         } catch (Exception e) {
             System.err.println("Error: ");
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    private static void printData(IEventSampler... samplers) throws InterruptedException {
+        while (true) {
+            Map<String, String> sample = collect(samplers);
+
+            String orderData = sample.entrySet().stream()
+                    .sorted((t1, t2) -> t2.getKey().compareTo(t1.getKey()))
+                    .map(t -> t.toString())
+                    .collect(joining(","));
+
+            System.out.println(orderData);
+            Thread.sleep(1000);
+        }
+    }
+
+    private static Map<String, String> collect(IEventSampler[] samplers) {
+        return Arrays.stream(samplers)
+                .flatMap(t -> t.sample().entrySet().stream())
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private static void sampleWord(String word, IEventSampler... samplers) throws InterruptedException, IOException {
@@ -50,11 +74,10 @@ public class EventSamplingApp {
         int numberOfSamples = 1000 / hz;
         for (int i = 0; i <= numberOfSamples; i++) {
             Thread.sleep(hz);
-            Map<String, String> sample = Arrays.stream(samplers)
-                    .flatMap(t -> t.sample().entrySet().stream())
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+            Map<String, String> sample = collect(samplers);
+            if (sample.keySet().stream().findAny().isPresent()) {
+                samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+            }
         }
 
         List<String> headerColumns = samples.values().stream()

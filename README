@@ -1,4 +1,1 @@
-In order to use this project, first clone:
-https://github.com/NicholasAStuart/myo-java
-
-and run "mvn clean install", then run the same for this project.
+To get LeapMotion to work, I had to copy the Leap.dll and LeapJava.dll from the LeapMotion SDK/lib/x64 to my System32 directory.
