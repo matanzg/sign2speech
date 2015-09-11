@@ -1,0 +1,4 @@
+In order to use this project, first clone:
+https://github.com/NicholasAStuart/myo-java
+
+and run "mvn clean install", then run the same for this project.
