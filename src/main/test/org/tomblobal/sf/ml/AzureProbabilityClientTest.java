@@ -1,39 +1,25 @@
 package org.tomblobal.sf.ml;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.TreeBasedTable;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.SortedMap;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.guava.api.Assertions.assertThat;
 
-@Ignore
 public class AzureProbabilityClientTest {
 
     @Test
     public void testGetProbability() throws Exception {
-        Optional<SortedMap<Character, Double>> probabilities =
-                new AzureProbabilityClient().getProbability(new long[]{2,
-                        8,
-                        3,
-                        5,
-                        1,
-                        8,
-                        13,
-                        0,
-                        6,
-                        6,
-                        10,
-                        8,
-                        0,
-                        8,
-                        0,
-                        8});
+        SinglePredicitioner predicitioner = new SinglePredicitioner(new DummyFeaturizer(new DummyNormalizer()),
+                Double.MIN_VALUE, new AzureProbabilityClient());
 
-        assertThat(probabilities).isPresent();
-        SortedMap<Character, Double> map = probabilities.get();
-        assertThat(map.firstKey()).isEqualTo('T');
+        TreeBasedTable<Long, String, Double> dummyTable = TreeBasedTable.create();
+        for (long i = 0; i < 670; i++) {
+            dummyTable.put(0l, String.valueOf(i), 1.1);
+        }
+
+        Optional<String> result = predicitioner.predictSingle(dummyTable);
+        assertThat(result).isPresent();
     }
 }

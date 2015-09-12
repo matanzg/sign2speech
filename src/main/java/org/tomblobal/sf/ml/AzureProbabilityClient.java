@@ -34,8 +34,8 @@ public class AzureProbabilityClient {
         // I should switch the Unirest thread pool with one of my own
         HttpResponse<JsonNode> result = null;
         try {
-            result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/f7470dd0449242fea6ac4f54b0aad1b8/services/64d601ff26bc4da89b5012376a783104/execute?api-version=2.0")
-                    .header("Authorization", "Bearer u+e3rS1TerYAdIic0QBKtNb6ZPajqTLku9ENPCGkoH00eFm6WajRCkhdHFOvF9H9mL7a0YOP6H3M0vQr6mCgVg==")
+            result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/3e3f9b7831664c92a318566e1e94a410/services/d277b5a7113f42828a21bb5142c7dfee/execute?api-version=2.0")
+                    .header("Authorization", "Bearer 4wFjmENJVytAyx0avluOXy2sxn71MBsW9z2W5JMEg87xk7pXgVgj9YJ9Lv5GNoapVGfvUM4n5k5WzZie0YxurQ==")
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .body("{" +
@@ -66,7 +66,7 @@ public class AzureProbabilityClient {
                 .getJSONArray("Values").getJSONArray(0);
 
         Map<String, Double> probabilityMap = new HashMap<>(26);
-        for (char curLetter = 'A'; curLetter <= 'Z'; curLetter++) {
+        for (char curLetter = 'A'; curLetter <= 'Z' && ((numOfFeatures + 1 + curLetter - 'A') < values.length()); curLetter++) {
             probabilityMap.put(String.valueOf(curLetter), values.getDouble(numOfFeatures + 1 + curLetter - 'A'));
         }
 
