@@ -5,6 +5,8 @@ import org.tomblobal.sf.myo.MyoEventSampler;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,18 +23,19 @@ import static java.util.stream.Collectors.toMap;
  */
 public class EventSamplingApp {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
+        String outputPath = args[0];
+
+        List<String> words = args.length > 1
+                ? Files.readAllLines(Paths.get(args[1]))
+                : Arrays.asList("J", "U", "L", "I", "A");
+        
         try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
             try (IEventSampler myoSampler = new MyoEventSampler()) {
                 //printData(leapMotionSampler, myoSampler);
 
-                sampleWord("J", leapMotionSampler, myoSampler);
-                sampleWord("U", leapMotionSampler, myoSampler);
-                sampleWord("L", leapMotionSampler, myoSampler);
-                sampleWord("I", leapMotionSampler, myoSampler);
-                sampleWord("A", leapMotionSampler, myoSampler);
-
+                words.stream().forEach(w -> sampleWord(w, outputPath, leapMotionSampler, myoSampler));
                 System.exit(0);
             }
         } catch (Exception e) {
@@ -62,59 +65,62 @@ public class EventSamplingApp {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static void sampleWord(String word, IEventSampler... samplers) throws InterruptedException, IOException {
+    private static void sampleWord(String word, String outputPath, IEventSampler... samplers) {
+        try {
+            int hz = 50;
+            System.out.println("Sampling word " + word + ", press Enter to start...");
+            System.in.read();
 
-        ExecutorService taskManager = Executors.newSingleThreadExecutor();
-        int hz = 50;
-        System.out.println("Sampling word " + word + ", press Enter to start...");
-        System.in.read();
+            final AtomicBoolean isSampling = new AtomicBoolean(true);
 
-        final AtomicBoolean isSampling = new AtomicBoolean(true);
+            ExecutorService taskManager = Executors.newSingleThreadExecutor();
+            Future recording = taskManager.submit(() -> {
+                try {
+                    System.in.read();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                isSampling.set(false);
+            });
 
-        Future recording = taskManager.submit(() -> {
-            try {
-                System.in.read();
-            } catch (IOException e) {
-                e.printStackTrace();
+            Map<Long, Map<String, Double>> samples = new HashMap<>();
+
+            System.out.println("Starting sample, press Enter to stop.");
+
+            while (isSampling.get()) {
+                Thread.sleep(1000 / hz);
+                Map<String, Double> sample = collect(samplers);
+                if (sample.keySet().stream().findAny().isPresent()) {
+                    samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+                }
             }
-            isSampling.set(false);
-        });
 
-        Map<Long, Map<String, Double>> samples = new HashMap<>();
+            recording.cancel(true);
 
-        System.out.println("Starting sample, press Enter to stop.");
+            List<String> headerColumns = samples.values().stream()
+                    .flatMap(t -> t.entrySet().stream().map(Map.Entry::getKey))
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
 
-        while (isSampling.get()) {
-            Thread.sleep(1000 / hz);
-            Map<String, Double> sample = collect(samplers);
-            if (sample.keySet().stream().findAny().isPresent()) {
-                samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+            String headerRow = "word,timestamp," + headerColumns.stream().collect(joining(","));
+            List<String> rows = samples.entrySet().stream()
+                    .sorted((t1, t2) -> t1.getKey().compareTo(t2.getKey()))
+                    .map(t -> createRow(word, t.getKey(), t.getValue(), headerColumns))
+                    .collect(Collectors.toList());
+
+            String outputFileName = outputPath + word + ".csv";
+            try (FileWriter writer = new FileWriter(outputFileName)) {
+                writer.write(headerRow);
+                writer.write("\n");
+                for (String row : rows) {
+                    writer.append(row).append("\n");
+                }
             }
-        }
 
-        recording.cancel(true);
 
-        List<String> headerColumns = samples.values().stream()
-                .flatMap(t -> t.entrySet().stream().map(Map.Entry::getKey))
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-
-        String headerRow = "word,timestamp," + headerColumns.stream().collect(joining(","));
-        List<String> rows = samples.entrySet().stream()
-                .sorted((t1, t2) -> t1.getKey().compareTo(t2.getKey()))
-                .map(t -> createRow(word, t.getKey(), t.getValue(), headerColumns))
-                .collect(Collectors.toList());
-
-        String osName = System.getProperty("os.name");
-        String osTempPath = osName.startsWith("Windows") ? "C:\\Temp\\" : "/tmp/";
-        String outputFileName = osTempPath + word + ".csv";
-        try (FileWriter writer = new FileWriter(outputFileName)) {
-            writer.write(headerRow);
-            writer.write("\n");
-            for (String row : rows) {
-                writer.append(row).append("\n");
-            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -4,8 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.TreeBasedTable;
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.ml.AzureProbabilityClient;
-import org.tomblobal.sf.ml.DummyFeaturizer;
-import org.tomblobal.sf.ml.DummyNormalizer;
+import org.tomblobal.sf.ml.Featurizer;
 import org.tomblobal.sf.ml.SinglePredicitioner;
 import org.tomblobal.sf.myo.MyoEventSampler;
 
@@ -19,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -35,7 +33,7 @@ public class PredictingApp {
             try (IEventSampler myoSampler = new MyoEventSampler()) {
                 //printData(leapMotionSampler, myoSampler);
                 ExecutorService taskManager = Executors.newSingleThreadExecutor();
-                SinglePredicitioner predicitioner = new SinglePredicitioner(new DummyFeaturizer(new DummyNormalizer()), 0, new AzureProbabilityClient());
+                SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient());
 
                 String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler);
                 System.out.println("Could it be........... " + guess);

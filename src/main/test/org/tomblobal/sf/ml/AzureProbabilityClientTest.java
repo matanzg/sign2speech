@@ -11,7 +11,7 @@ public class AzureProbabilityClientTest {
 
     @Test
     public void testGetProbability() throws Exception {
-        SinglePredicitioner predicitioner = new SinglePredicitioner(new DummyFeaturizer(new DummyNormalizer()),
+        SinglePredicitioner predicitioner = new SinglePredicitioner(new NormalizingHeaderBasedFeaturizer(new DummyNormalizer()),
                 Double.MIN_VALUE, new AzureProbabilityClient());
 
         TreeBasedTable<Long, String, Double> dummyTable = TreeBasedTable.create();
