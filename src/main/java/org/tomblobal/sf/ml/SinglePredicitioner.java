@@ -3,6 +3,8 @@ package org.tomblobal.sf.ml;
 import com.google.common.base.Optional;
 import com.google.common.collect.TreeBasedTable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 
 public class SinglePredicitioner {
@@ -20,7 +22,7 @@ public class SinglePredicitioner {
     public Optional<String> predictSingle(TreeBasedTable<Long, String, Double> rawFeatures) {
         double[] features = featurizer.extract(rawFeatures);
         Optional<SortedMap<String, Double>> probabilitiesOpt = client.getProbability(features);
-        System.out.println(probabilitiesOpt);
+        //System.out.println(probabilitiesOpt);
         if (probabilitiesOpt.isPresent()) {
             SortedMap<String, Double> probabilities = probabilitiesOpt.get();
             if (probabilities.get(probabilities.firstKey()) > threshold) {
