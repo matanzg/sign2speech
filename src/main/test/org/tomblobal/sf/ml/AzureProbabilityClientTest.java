@@ -1,6 +1,7 @@
 package org.tomblobal.sf.ml;
 
 import com.google.common.base.Optional;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.SortedMap;
@@ -8,6 +9,7 @@ import java.util.SortedMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.guava.api.Assertions.assertThat;
 
+@Ignore
 public class AzureProbabilityClientTest {
 
     @Test
