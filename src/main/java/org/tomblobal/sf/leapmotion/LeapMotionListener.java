@@ -45,13 +45,13 @@ public class LeapMotionListener extends Listener {
         getControllerData(controller);
     }
 
-    private Map<String, String> getControllerData(Controller controller) {
+    private Map<String, Double> getControllerData(Controller controller) {
 
         if (controller == null) {
             return new HashMap<>();
         }
 
-        Map<String, String> trace = new HashMap<>();
+        Map<String, Double> trace = new HashMap<>();
         // Get the most recent frame and report some basic information
         Frame frame = controller.frame();
 
@@ -62,7 +62,7 @@ public class LeapMotionListener extends Listener {
         //Get hands
         for (Hand hand : frame.hands()) {
             String handPrefix = hand.isLeft() ? "_L_" : "_R_";
-            report(trace, handPrefix + "isLeft", hand.isLeft());
+            report(trace, handPrefix + "isLeft", hand.isLeft() ? 1 : 0);
             report(trace, handPrefix + "palmPosition", hand.palmPosition());
             report(trace, handPrefix + "palmNormal", hand.palmNormal());
             report(trace, handPrefix + "palmDirection", hand.direction());
@@ -103,20 +103,20 @@ public class LeapMotionListener extends Listener {
         for (int i = 0; i < gestures.count(); i++) {
             Gesture gesture = gestures.get(i);
             String gestureId = "gesture_" + gesture.id() + "_";
-            report(trace, gestureId + "_type", gesture.type().toString());
-            report(trace, gestureId + "_state", gesture.state().toString());
+            report(trace, gestureId + "_type", gesture.type().ordinal());
+            report(trace, gestureId + "_state", gesture.state().ordinal());
 
             switch (gesture.type()) {
                 case TYPE_CIRCLE:
                     CircleGesture circle = new CircleGesture(gesture);
 
                     // Calculate clock direction using the angle between circle normal and pointable
-                    String clockwiseness;
+                    int clockwiseness;
                     if (circle.pointable().direction().angleTo(circle.normal()) <= Math.PI / 2) {
                         // Clockwise if angle is less than 90 degrees
-                        clockwiseness = "clockwise";
+                        clockwiseness = 0;
                     } else {
-                        clockwiseness = "counterclockwise";
+                        clockwiseness = 1;
                     }
 
                     // Calculate angle swept since last frame
@@ -159,34 +159,22 @@ public class LeapMotionListener extends Listener {
         return trace;
     }
 
-    private void report(Map<String, String> trace, String event, boolean value) {
-        report(trace, event, String.valueOf(value));
-    }
-
-    private void report(Map<String, String> trace, String event, int value) {
-        report(trace, event, String.valueOf(value));
-    }
-
-    private void report(Map<String, String> trace, String event, double value) {
-        report(trace, event, String.format("%.3f", value));
-    }
-
-    private void report(Map<String, String> trace, String event, Vector value) {
-        report(trace, event + "X", String.valueOf(value.getX()));
-        report(trace, event + "Y", String.valueOf(value.getY()));
-        report(trace, event + "Z", String.valueOf(value.getZ()));
-    }
-
-    private void report(Map<String, String> trace, String event, String value) {
+    private void report(Map<String, Double> trace, String event, double value) {
         synchronized (this) {
             trace.put("Leap_" + event, value);
         }
     }
 
-    public Map<String, String> getCurrentData() {
+    private void report(Map<String, Double> trace, String event, Vector value) {
+        report(trace, event + "X", value.getX());
+        report(trace, event + "Y", value.getY());
+        report(trace, event + "Z", value.getZ());
+    }
+
+    public Map<String, Double> getCurrentData() {
         synchronized (this) {
             isCollectingData.set(true);
-            Map<String, String> controllerData = getControllerData(currentController);
+            Map<String, Double> controllerData = getControllerData(currentController);
             currentController = null;
             isCollectingData.set(false);
             return controllerData;

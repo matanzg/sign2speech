@@ -12,7 +12,7 @@ import com.thalmic.myo.enums.*;
 public class MyoEventsLogger implements DeviceListener {
 
     private final List<Myo> _knownMyos = new ArrayList<>();
-    private Map<String, String> _currentData = new HashMap<>();
+    private Map<String, Double> _currentData = new HashMap<>();
 
     @Override
     public void onPair(Myo myo, long timestamp, FirmwareVersion firmwareVersion) {
@@ -52,7 +52,7 @@ public class MyoEventsLogger implements DeviceListener {
 
     @Override
     public void onGyroscopeData(Myo myo, long timestamp, Vector3 gyro) {
-        report(myo, "gyro_", String.valueOf(gyro.getX()));
+        report(myo, "gyro_", gyro);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class MyoEventsLogger implements DeviceListener {
     @Override
     public void onEmgData(Myo myo, long timestamp, byte[] emg) {
         for (int i = 0; i < emg.length; i++) {
-            report(myo, "emg" + i, String.valueOf(emg[i]));
+            report(myo, "emg" + i, emg[i]);
         }
     }
 
@@ -76,7 +76,7 @@ public class MyoEventsLogger implements DeviceListener {
 
     @Override
     public void onPose(Myo myo, long timestamp, Pose pose) {
-        report(myo, "pose", pose.toString());
+        report(myo, "pose", pose.getType().ordinal());
     }
 
     @Override
@@ -90,7 +90,7 @@ public class MyoEventsLogger implements DeviceListener {
     }
 
     private int identifyMyo(Myo myo) {
-        if (myo != null && !_knownMyos.contains(myo)){
+        if (myo != null && !_knownMyos.contains(myo)) {
             _knownMyos.add(myo);
         }
 
@@ -98,19 +98,19 @@ public class MyoEventsLogger implements DeviceListener {
     }
 
     private void report(Myo myo, String key, Quaternion value) {
-        report(myo, key + "W", String.valueOf(value.getW()));
-        report(myo, key + "X", String.valueOf(value.getX()));
-        report(myo, key + "Y", String.valueOf(value.getY()));
-        report(myo, key + "Z", String.valueOf(value.getZ()));
+        report(myo, key + "W", value.getW());
+        report(myo, key + "X", value.getX());
+        report(myo, key + "Y", value.getY());
+        report(myo, key + "Z", value.getZ());
     }
 
     private void report(Myo myo, String key, Vector3 value) {
-        report(myo, key + "X", String.valueOf(value.getX()));
-        report(myo, key + "Y", String.valueOf(value.getY()));
-        report(myo, key + "Z", String.valueOf(value.getZ()));
+        report(myo, key + "X", value.getX());
+        report(myo, key + "Y", value.getY());
+        report(myo, key + "Z", value.getZ());
     }
 
-    private void report(Myo myo, String key, String value) {
+    private void report(Myo myo, String key, double value) {
         if (myo == null) {
             return;
         }
@@ -120,9 +120,9 @@ public class MyoEventsLogger implements DeviceListener {
         }
     }
 
-    public Map<String, String> getCurrentData() {
+    public Map<String, Double> getCurrentData() {
         synchronized (this) {
-            HashMap<String, String> stringStringHashMap = new HashMap<>(_currentData);
+            HashMap<String, Double> stringStringHashMap = new HashMap<>(_currentData);
             _currentData = new HashMap<>();
             return stringStringHashMap;
         }

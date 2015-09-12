@@ -16,6 +16,6 @@ public class DummyFeaturizer implements Featurizer {
 
         TreeBasedTable<Long, String, Double> normalizedFeatures = normalizer.normalize(rawFeatures);
 
-        return Doubles.toArray(rawFeatures.row(rawFeatures.rowKeySet().last()).values());
+        return Doubles.toArray(rawFeatures.row(normalizedFeatures.rowKeySet().last()).values());
     }
 }

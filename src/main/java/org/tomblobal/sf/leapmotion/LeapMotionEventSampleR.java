@@ -18,7 +18,7 @@ public class LeapMotionEventSampler implements IEventSampler {
     }
 
     @Override
-    public Map<String, String> sample() {
+    public Map<String, Double> sample() {
         return listener.getCurrentData();
     }
 

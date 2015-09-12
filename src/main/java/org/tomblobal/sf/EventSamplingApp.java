@@ -44,7 +44,7 @@ public class EventSamplingApp {
 
     private static void printData(IEventSampler... samplers) throws InterruptedException {
         while (true) {
-            Map<String, String> sample = collect(samplers);
+            Map<String, Double> sample = collect(samplers);
 
             String orderData = sample.entrySet().stream()
                     .sorted((t1, t2) -> t2.getKey().compareTo(t1.getKey()))
@@ -56,7 +56,7 @@ public class EventSamplingApp {
         }
     }
 
-    private static Map<String, String> collect(IEventSampler[] samplers) {
+    private static Map<String, Double> collect(IEventSampler[] samplers) {
         return Arrays.stream(samplers)
                 .flatMap(t -> t.sample().entrySet().stream())
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -80,13 +80,13 @@ public class EventSamplingApp {
             isSampling.set(false);
         });
 
-        Map<Long, Map<String, String>> samples = new HashMap<>();
+        Map<Long, Map<String, Double>> samples = new HashMap<>();
 
         System.out.println("Starting sample, press Enter to stop.");
 
         while (isSampling.get()) {
             Thread.sleep(1000 / hz);
-            Map<String, String> sample = collect(samplers);
+            Map<String, Double> sample = collect(samplers);
             if (sample.keySet().stream().findAny().isPresent()) {
                 samples.put(System.currentTimeMillis(), new HashMap<>(sample));
             }
@@ -118,8 +118,11 @@ public class EventSamplingApp {
         }
     }
 
-    private static String createRow(String word, Long timestamp, Map<String, String> features, List<String> headers) {
-        String valueColumns = headers.stream().map(h -> features.getOrDefault(h, "")).collect(joining(","));
+    private static String createRow(String word, Long timestamp, Map<String, Double> features, List<String> headers) {
+        String valueColumns = headers.stream()
+                .map(h -> String.format("%.5f", features.getOrDefault(h, 0d)))
+                .collect(joining(","));
+
         return String.format("%s,%s,%s", word, timestamp, valueColumns);
     }
 }
