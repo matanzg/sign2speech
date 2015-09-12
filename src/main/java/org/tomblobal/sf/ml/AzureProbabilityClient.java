@@ -31,8 +31,8 @@ public class AzureProbabilityClient {
 
         String featuresJson = gson.toJson(nullableFeaturesList.toArray());
         // I should switch the Unirest thread pool with one of my own
-        HttpResponse<JsonNode> result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/f7470dd0449242fea6ac4f54b0aad1b8/services/a97e343bb34e47d4878f28f5b85c8897/execute?api-version=2.0")
-                .header("Authorization", "Bearer t76gAAbh84JzBhIhWCJX/Ui3EaZOqzrUTTHC3OMbgc2mMR4Y9xHPTvS2YZzq/ChWcYlYzN9CtsPJZxQ5WCnuGw==")
+        HttpResponse<JsonNode> result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/f7470dd0449242fea6ac4f54b0aad1b8/services/64d601ff26bc4da89b5012376a783104/execute?api-version=2.0")
+                .header("Authorization", "Bearer u+e3rS1TerYAdIic0QBKtNb6ZPajqTLku9ENPCGkoH00eFm6WajRCkhdHFOvF9H9mL7a0YOP6H3M0vQr6mCgVg==")
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .body("{" +
