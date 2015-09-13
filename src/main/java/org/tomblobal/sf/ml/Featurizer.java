@@ -6,11 +6,13 @@ public interface Featurizer {
     double[] extract(TreeBasedTable<Long, String, Double> rawFeatures);
 
     static Featurizer create() {
-        return new SamplingFuterizer(
-                //new NaiveFeaturizer(
-                //new RealSenseAndMyoFeaturizer(
-                new MyoOnlyFeaturizer(
-                        new DummyNormalizer()),
-                3);
+        return new AggregatingMyoFeaturizer(new DummyNormalizer());
+        //SamplingAveragingFeaturizer(
+        //SamplingFuterizer(
+        //new NaiveFeaturizer(
+        //new RealSenseAndMyoFeaturizer(
+        //new MyoOnlyFeaturizer(
+        //        new DummyNormalizer()),
+        //5);
     }
 }

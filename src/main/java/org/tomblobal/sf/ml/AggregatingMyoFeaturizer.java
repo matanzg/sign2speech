@@ -63,7 +63,14 @@ public class AggregatingMyoFeaturizer extends MyoOnlyFeaturizer {
                         .map(t -> Math.abs(t))
                         .toArray());
 
-        return Arrays.asList(feature1, feature2, feature3, feature4, feature5, feature6, feature7, feature8);
+        Double feature9 = variance(
+                featuresPerRow.stream()
+                        .mapToDouble(t -> t.get(5))
+                        .filter(t -> t != 0)
+                        .map(t -> Math.exp(t))
+                        .toArray());
+
+        return Arrays.asList(feature1, feature2, feature3, feature4, feature5, feature6, feature7, feature8, feature9);
     }
 
     private List<Double> calculateFeatures(Map<String, Double> row) {
@@ -85,8 +92,9 @@ public class AggregatingMyoFeaturizer extends MyoOnlyFeaturizer {
         Double emg0 = row.get("myo1_emg0");
 
         Double feature5 = emg0;
+        Double feature6 = accelerationZ;
 
-        return Arrays.asList(feature1, feature2, feature3, feature4, feature5);
+        return Arrays.asList(feature1, feature2, feature3, feature4, feature5, feature6);
     }
 
     public static double median(double[] m) {

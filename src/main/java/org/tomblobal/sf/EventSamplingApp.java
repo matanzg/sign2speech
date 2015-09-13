@@ -2,7 +2,7 @@ package org.tomblobal.sf;
 
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.myo.MyoEventSampler;
-import org.tomblobal.sf.realsense.RealSenseSampler;
+//import org.tomblobal.sf.realsense.RealSenseSampler;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -26,34 +26,44 @@ public class EventSamplingApp {
 
     public static void main(String[] args) throws IOException {
 
-        String outputPath = args[0];
+        //String outputPath = args[0];
+
+        String outputPath = "C:\\TEMP\\New\\";
         createFolderStructure(outputPath);
 
         List<String> words = args.length > 1
                 ? Files.readAllLines(Paths.get(args[1]))
-                : Arrays.asList("J", "U", "L", "I", "A");
+                : Arrays.asList("THANK_YOU");
 
-        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
+        try (
+                //IEventSampler leapMotionSampler = new LeapMotionEventSampler();
              IEventSampler myoSampler = new MyoEventSampler();) {
             //printData(leapMotionSampler, myoSampler);
 
             words.stream().forEach(w -> {
-
-                try (IEventSampler realSenseSampler = new RealSenseSampler()) {
-                    sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
-                } catch (Exception e) {
-                    System.err.println("Error: ");
-                    e.printStackTrace();
-                    System.exit(1);
+                System.out.println("new word! " + w);
+                for (int i = 0; i < 50; i++) {
+                    final int index = i;
+                    //try (IEventSampler realSenseSampler = new RealSenseSampler()) {
+                        sampleWord(w, index, outputPath,
+                                //leapMotionSampler,
+                                myoSampler
+                                //, realSenseSampler
+                                );
+//                    } catch (Exception e) {
+//                        System.err.println("Error: ");
+//                        e.printStackTrace();
+//                        System.exit(1);
+//                    }
                 }
             });
-            System.exit(0);
-
         } catch (Exception e) {
             System.err.println("Error: ");
             e.printStackTrace();
             System.exit(1);
         }
+
+        System.exit(0);
     }
 
     private static void printData(IEventSampler... samplers) throws InterruptedException {
@@ -76,11 +86,10 @@ public class EventSamplingApp {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static void sampleWord(String word, String outputPath, IEventSampler... samplers) {
+    private static void sampleWord(String word, int index, String outputPath, IEventSampler... samplers) {
         try {
             int hz = 50;
-            System.out.println("Sampling word " + word + ", press Enter to start...");
-            System.in.read();
+            System.out.println("Sampling word " + word + " number " + index + ", press Enter to start...");
             System.in.read();
 
             final AtomicBoolean isSampling = new AtomicBoolean(true);
@@ -88,7 +97,6 @@ public class EventSamplingApp {
             ExecutorService taskManager = Executors.newSingleThreadExecutor();
             Future recording = taskManager.submit(() -> {
                 try {
-                    System.in.read();
                     System.in.read();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -123,7 +131,7 @@ public class EventSamplingApp {
                     .map(t -> createRow(word, t.getKey(), t.getValue(), headerColumns))
                     .collect(Collectors.toList());
 
-            String outputFileName = outputPath + word + ".csv";
+            String outputFileName = outputPath + word + "_" + index + ".csv";
             try (FileWriter writer = new FileWriter(outputFileName)) {
                 writer.write(headerRow);
                 writer.write("\n");
@@ -138,7 +146,8 @@ public class EventSamplingApp {
         }
     }
 
-    private static String createRow(String word, Long timestamp, Map<String, Double> features, List<String> headers) {
+    private static String createRow(String word, Long
+            timestamp, Map<String, Double> features, List<String> headers) {
         String valueColumns = headers.stream()
                 .map(h -> String.format("%.5f", features.getOrDefault(h, 0d)))
                 .collect(joining(","));

@@ -1,5 +1,7 @@
 package org.tomblobal.sf.ml;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
@@ -14,6 +16,6 @@ public class MyoOnlyFeaturizer extends RealSenseAndMyoFeaturizer {
 
     @Override
     protected Set<String> getIncludedHeaders() {
-        return super.getIncludedHeaders().stream().filter(t->t.toLowerCase().contains("myo")).collect(toSet());
+        return super.getIncludedHeaders().stream().filter(t -> t.toLowerCase().contains("myo1")).collect(toSet());
     }
 }

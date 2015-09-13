@@ -20,8 +20,8 @@ import static java.util.stream.Collectors.joining;
 public class TrainingApp {
 
     public static void main(String[] args) throws IOException {
-        String dataFolder = args[0];
-        //String dataFolder = "C:\\Outputs\\Julia\\Neutral";
+//        String dataFolder = args[0];
+        String dataFolder = "C:\\Outputs\\New";
 
         Featurizer featurizer = Featurizer.create();
         List<String> outputRows = Files.walk(Paths.get(dataFolder))
@@ -31,7 +31,7 @@ public class TrainingApp {
                 .sorted()
                 .collect(Collectors.toList());
 
-        Path outputPath = Paths.get(dataFolder, "output_RS_and_Myo__all_features__3_rows__Neutral.csv");
+        Path outputPath = Paths.get("C:\\Projects\\sign2speech\\resources", "output__myo1_aggregate.csv");
         Files.write(outputPath, outputRows);
     }
 
@@ -61,7 +61,7 @@ public class TrainingApp {
                 }
             }
             double[] features = featurizer.extract(rawFeatures);
-            return new Pair<>(word, features);
+            return new Pair<>(word.split("_\\d+")[0], features);
         } catch (Exception e) {
             System.out.println(file);
             throw new RuntimeException(e);

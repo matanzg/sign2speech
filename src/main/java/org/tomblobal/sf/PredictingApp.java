@@ -37,7 +37,8 @@ public class PredictingApp {
     public static void main(String[] args) throws IOException {
 
         List<String> words = Files.readAllLines(Paths.get("C:\\Projects\\sign2speech\\words.txt"));
-        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
+        try (
+                //IEventSampler leapMotionSampler = new LeapMotionEventSampler();
              IEventSampler myoSampler = new MyoEventSampler()
         ) {
             //printData(leapMotionSampler, myoSampler);
@@ -46,10 +47,14 @@ public class PredictingApp {
 
             boolean loop = true;
             while (loop) {
-                try (IEventSampler realSenseSampler = new RealSenseSampler()) {
-                    String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler, realSenseSampler);
+                //try (IEventSampler realSenseSampler = new RealSenseSampler()) {
+                    String guess = guessWord(predicitioner, taskManager,
+                            //leapMotionSampler,
+                            myoSampler
+                            // , realSenseSampler
+                            );
                     System.out.println("Could it be........... " + guess);
-                }
+                //}
             }
             System.exit(0);
         } catch (Exception e) {
