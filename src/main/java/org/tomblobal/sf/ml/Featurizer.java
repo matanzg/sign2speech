@@ -11,6 +11,6 @@ public interface Featurizer {
                 //new RealSenseAndMyoFeaturizer(
                 new MyoOnlyFeaturizer(
                         new DummyNormalizer()),
-                8);
+                4);
     }
 }

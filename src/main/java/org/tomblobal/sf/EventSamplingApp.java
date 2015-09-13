@@ -39,33 +39,12 @@ public class EventSamplingApp {
 
             words.stream().forEach(w -> {
 
-                File realSenseOutput = new File("C:\\Projects\\sign2speech\\realsenseoutput.csv");
-                try {
-                    realSenseOutput.createNewFile();
-
-                    Process process = new ProcessBuilder("C:\\Projects\\PrimeSenseTracker\\PrimeSenseTracker\\bin\\Debug\\PrimeSenseTracker.exe")
-                            .redirectOutput(realSenseOutput)
-                            .start();
-
-                    Thread.sleep(1000);
-
-                    try (IEventSampler realSenseSampler = new RealSenseSampler(realSenseOutput)) {
-                        sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
-                    } catch (Exception e) {
-                        System.err.println("Error: ");
-                        e.printStackTrace();
-                        System.exit(1);
-                    }
-
-                    process.destroy();
-                    Runtime.getRuntime().exec("taskkill /F /IM FF_HandsConsole.exe");
-
-                    Thread.sleep(1000);
-                    realSenseOutput.delete();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                } catch (InterruptedException e) {
+                try (IEventSampler realSenseSampler = new RealSenseSampler()) {
+                    sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
+                } catch (Exception e) {
+                    System.err.println("Error: ");
                     e.printStackTrace();
+                    System.exit(1);
                 }
             });
             System.exit(0);

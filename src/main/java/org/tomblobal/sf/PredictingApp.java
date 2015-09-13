@@ -8,7 +8,9 @@ import org.tomblobal.sf.ml.DummyNormalizer;
 import org.tomblobal.sf.ml.Featurizer;
 import org.tomblobal.sf.ml.SinglePredicitioner;
 import org.tomblobal.sf.myo.MyoEventSampler;
+import org.tomblobal.sf.realsense.RealSenseSampler;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,19 +34,21 @@ public class PredictingApp {
 
     public static void main(String[] args) {
 
-        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
-            try (IEventSampler myoSampler = new MyoEventSampler()) {
-                //printData(leapMotionSampler, myoSampler);
-                ExecutorService taskManager = Executors.newSingleThreadExecutor();
-                SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient());
+        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
+             IEventSampler myoSampler = new MyoEventSampler()
+        ) {
+            //printData(leapMotionSampler, myoSampler);
+            ExecutorService taskManager = Executors.newSingleThreadExecutor();
+            SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient());
 
-                boolean loop = true;
-                while (loop) {
-                    String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler);
+            boolean loop = true;
+            while (loop) {
+                try (IEventSampler realSenseSampler = new RealSenseSampler()) {
+                    String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler, realSenseSampler);
                     System.out.println("Could it be........... " + guess);
                 }
-                System.exit(0);
             }
+            System.exit(0);
         } catch (Exception e) {
             System.err.println("Error: ");
             e.printStackTrace();
@@ -59,6 +63,7 @@ public class PredictingApp {
     }
 
     private static String guessWord(SinglePredicitioner predicitioner, ExecutorService taskManager, IEventSampler... samplers) throws InterruptedException, IOException {
+
         Map<Long, Map<String, Double>> samples = sample(taskManager, samplers);
 
         List<String> allHeaderKeys = samples.values().stream()
