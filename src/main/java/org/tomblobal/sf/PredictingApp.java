@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.TreeBasedTable;
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.ml.AzureProbabilityClient;
+import org.tomblobal.sf.ml.DummyNormalizer;
 import org.tomblobal.sf.ml.Featurizer;
 import org.tomblobal.sf.ml.SinglePredicitioner;
 import org.tomblobal.sf.myo.MyoEventSampler;
@@ -18,9 +19,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util
+        .stream.Collectors.toMap;
 
 /**
  * Hello world!
@@ -35,9 +38,11 @@ public class PredictingApp {
                 ExecutorService taskManager = Executors.newSingleThreadExecutor();
                 SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient());
 
-                String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler);
-                System.out.println("Could it be........... " + guess);
-
+                boolean loop = true;
+                while (loop) {
+                    String guess = guessWord(predicitioner, taskManager, leapMotionSampler, myoSampler);
+                    System.out.println("Could it be........... " + guess);
+                }
                 System.exit(0);
             }
         } catch (Exception e) {
@@ -92,12 +97,12 @@ public class PredictingApp {
         Map<Long, Map<String, Double>> samples = new HashMap<>();
 
         System.out.println("Starting sample, press Enter to stop.");
-
+        long eventCounter = 1;
         while (isSampling.get()) {
             Thread.sleep(1000 / hz);
             Map<String, Double> sample = collect(samplers);
             if (sample.keySet().stream().findAny().isPresent()) {
-                samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+                samples.put(eventCounter++, new HashMap<>(sample));
             }
         }
 

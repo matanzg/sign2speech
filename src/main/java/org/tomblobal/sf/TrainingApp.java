@@ -21,6 +21,7 @@ public class TrainingApp {
 
     public static void main(String[] args) throws IOException {
         String dataFolder = args[0];
+
         Featurizer featurizer = Featurizer.create();
         List<String> outputRows = Files.walk(Paths.get(dataFolder))
                 .filter(t -> Files.isRegularFile(t) && !t.getFileName().toString().contains("output"))

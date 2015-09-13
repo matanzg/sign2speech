@@ -66,9 +66,12 @@ public class AzureProbabilityClient {
                 .getJSONArray("Values").getJSONArray(0);
 
         Map<String, Double> probabilityMap = new HashMap<>(26);
-        for (char curLetter = 'A'; curLetter <= 'Z' && ((numOfFeatures + 1 + curLetter - 'A') < values.length()); curLetter++) {
-            probabilityMap.put(String.valueOf(curLetter), values.getDouble(numOfFeatures + 1 + curLetter - 'A'));
+        for (char curLetter = '1'; curLetter <= '5' && ((numOfFeatures + 2 + curLetter - '1') < values.length()); curLetter++) {
+            probabilityMap.put(String.valueOf(curLetter), values.getDouble(numOfFeatures + 1 + curLetter - '1'));
         }
+        double max =  probabilityMap.values().stream().mapToDouble(x -> x.doubleValue()).max().getAsDouble();
+        probabilityMap.clear();
+        probabilityMap.put(values.getString(values.length() - 1), max);
 
         return probabilityMap;
     }

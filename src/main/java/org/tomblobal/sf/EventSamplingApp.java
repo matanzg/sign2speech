@@ -3,6 +3,7 @@ package org.tomblobal.sf;
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.myo.MyoEventSampler;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static org.tomblobal.sf.UglyUtils.createFolderStructure;
 
 /**
  * Hello world!
@@ -26,11 +28,12 @@ public class EventSamplingApp {
     public static void main(String[] args) throws IOException {
 
         String outputPath = args[0];
+        createFolderStructure(outputPath);
 
         List<String> words = args.length > 1
                 ? Files.readAllLines(Paths.get(args[1]))
                 : Arrays.asList("J", "U", "L", "I", "A");
-        
+
         try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
             try (IEventSampler myoSampler = new MyoEventSampler()) {
                 //printData(leapMotionSampler, myoSampler);
@@ -70,12 +73,14 @@ public class EventSamplingApp {
             int hz = 50;
             System.out.println("Sampling word " + word + ", press Enter to start...");
             System.in.read();
+            System.in.read();
 
             final AtomicBoolean isSampling = new AtomicBoolean(true);
 
             ExecutorService taskManager = Executors.newSingleThreadExecutor();
             Future recording = taskManager.submit(() -> {
                 try {
+                    System.in.read();
                     System.in.read();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -87,11 +92,12 @@ public class EventSamplingApp {
 
             System.out.println("Starting sample, press Enter to stop.");
 
+            long eventCounter = 1;
             while (isSampling.get()) {
                 Thread.sleep(1000 / hz);
                 Map<String, Double> sample = collect(samplers);
                 if (sample.keySet().stream().findAny().isPresent()) {
-                    samples.put(System.currentTimeMillis(), new HashMap<>(sample));
+                    samples.put(eventCounter++, new HashMap<>(sample));
                 }
             }
 
