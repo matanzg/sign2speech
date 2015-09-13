@@ -2,10 +2,9 @@ package org.tomblobal.sf;
 
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.myo.MyoEventSampler;
+import org.tomblobal.sf.realsense.RealSenseSampler;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -34,13 +33,43 @@ public class EventSamplingApp {
                 ? Files.readAllLines(Paths.get(args[1]))
                 : Arrays.asList("J", "U", "L", "I", "A");
 
-        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
-            try (IEventSampler myoSampler = new MyoEventSampler()) {
-                //printData(leapMotionSampler, myoSampler);
+        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
+             IEventSampler myoSampler = new MyoEventSampler();) {
+            //printData(leapMotionSampler, myoSampler);
 
-                words.stream().forEach(w -> sampleWord(w, outputPath, leapMotionSampler, myoSampler));
-                System.exit(0);
-            }
+            words.stream().forEach(w -> {
+
+                File realSenseOutput = new File("C:\\Projects\\sign2speech\\realsenseoutput.csv");
+                try {
+                    realSenseOutput.createNewFile();
+
+                    Process process = new ProcessBuilder("C:\\Projects\\PrimeSenseTracker\\PrimeSenseTracker\\bin\\Debug\\PrimeSenseTracker.exe")
+                            .redirectOutput(realSenseOutput)
+                            .start();
+
+                    Thread.sleep(1000);
+                    
+                    try (IEventSampler realSenseSampler = new RealSenseSampler(realSenseOutput)) {
+                        sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
+                    } catch (Exception e) {
+                        System.err.println("Error: ");
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+
+                    process.destroy();
+                    Runtime.getRuntime().exec("taskkill /F /IM FF_HandsConsole.exe");
+
+                    Thread.sleep(1000);
+                    realSenseOutput.delete();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+            System.exit(0);
+
         } catch (Exception e) {
             System.err.println("Error: ");
             e.printStackTrace();
