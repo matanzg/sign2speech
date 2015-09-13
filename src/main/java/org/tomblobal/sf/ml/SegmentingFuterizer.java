@@ -8,18 +8,22 @@ import com.google.common.collect.TreeBasedTable;
 public class SegmentingFuterizer implements Featurizer {
 
     private final Featurizer inner;
+    private final int numberOfSegments;
 
-    public SegmentingFuterizer(Featurizer inner) {
+    public SegmentingFuterizer(Featurizer inner, int numberOfSegments) {
         this.inner = inner;
+        this.numberOfSegments = numberOfSegments;
     }
 
     @Override
     public double[] extract(TreeBasedTable<Long, String, Double> rawFeatures) {
         TreeBasedTable<Long, String, Double> selectedFeatures = TreeBasedTable.create();
-        long segmentSize = rawFeatures.rowMap().size() / 4;
-        rawFeatures.row(segmentSize).entrySet().forEach(t -> selectedFeatures.put(1L, t.getKey(), t.getValue()));
-        rawFeatures.row(segmentSize * 2).entrySet().forEach(t -> selectedFeatures.put(2L, t.getKey(), t.getValue()));
-        rawFeatures.row(segmentSize * 3).entrySet().forEach(t -> selectedFeatures.put(3L, t.getKey(), t.getValue()));
+        long segmentSize = rawFeatures.rowMap().size() / numberOfSegments;
+        for (int currentSegment = 1; currentSegment < numberOfSegments; currentSegment++) {
+            final long id = currentSegment;
+            rawFeatures.row(segmentSize * currentSegment).entrySet().forEach(t -> selectedFeatures.put(id, t.getKey(), t.getValue()));
+        }
+
         return inner.extract(selectedFeatures);
     }
 }
