@@ -25,7 +25,7 @@ public class SinglePredicitioner {
         //System.out.println(probabilitiesOpt);
         if (probabilitiesOpt.isPresent()) {
             SortedMap<String, Double> probabilities = probabilitiesOpt.get();
-            System.out.println(String.format("Probability:{}%", probabilities.get(probabilities.firstKey()) * 100));
+            System.out.println(String.format("Probability:%d percent", (int)(double)probabilities.get(probabilities.firstKey()) * 100));
             if (probabilities.get(probabilities.firstKey()) > threshold) {
                 return Optional.of(probabilities.firstKey());
             } else {

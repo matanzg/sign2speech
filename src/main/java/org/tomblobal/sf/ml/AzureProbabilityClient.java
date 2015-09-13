@@ -38,8 +38,8 @@ public class AzureProbabilityClient {
         // I should switch the Unirest thread pool with one of my own
         HttpResponse<JsonNode> result = null;
         try {
-            result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/3e3f9b7831664c92a318566e1e94a410/services/d277b5a7113f42828a21bb5142c7dfee/execute?api-version=2.0")
-                    .header("Authorization", "Bearer 4wFjmENJVytAyx0avluOXy2sxn71MBsW9z2W5JMEg87xk7pXgVgj9YJ9Lv5GNoapVGfvUM4n5k5WzZie0YxurQ==")
+            result = Unirest.post("https://ussouthcentral.services.azureml.net/workspaces/3e3f9b7831664c92a318566e1e94a410/services/5209322400ea4745a70b3b59bd8a3b24/execute?api-version=2.0")
+                    .header("Authorization", "Bearer dLK8hAQMhg/YGQTAH1WJSq8kp4up3gx+Qq2Ml8jvxrDW3ZUvyBLes2htIKL8fgzKj3wkpsWleMCVCP4ugx/bTQ==")
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .body("{" +
