@@ -70,7 +70,7 @@ public class AggregatingMyoFeaturizer extends MyoOnlyFeaturizer {
                         .map(t -> Math.exp(t))
                         .toArray());
 
-        return Arrays.asList(feature1, feature2, feature3, feature4, feature5, feature6, feature7, feature8, feature9);
+        return Arrays.asList(feature1, feature2, feature3, feature5, feature6, feature7, feature8, feature9);
     }
 
     private List<Double> calculateFeatures(Map<String, Double> row) {

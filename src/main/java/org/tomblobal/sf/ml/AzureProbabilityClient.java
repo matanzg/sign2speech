@@ -69,13 +69,12 @@ public class AzureProbabilityClient {
         JSONArray values = body.getObject().getJSONObject("Results").getJSONObject("output1").getJSONObject("value")
                 .getJSONArray("Values").getJSONArray(0);
 
-        return Collections.singletonMap(values.getString(values.length() -1), 1d);
-//        Map<String, Double> probabilityMap = new HashMap<>(classes.size());
-//        for (int classIndex = 0; classIndex < classes.size(); classIndex++) {
-//            probabilityMap.put(classes.get(classIndex), values.getDouble(numOfFeatures + classIndex));
-//        }
-//
-//        return probabilityMap;
+        String result = values.getString(values.length() - 1);
+        double maxConfidence = 0d;
+        for (int classIndex = 0; classIndex < classes.size(); classIndex++) {
+            maxConfidence = Math.max(maxConfidence, values.getDouble(numOfFeatures + classIndex));
+        }
+        return Collections.singletonMap(result, maxConfidence);
     }
 
 }

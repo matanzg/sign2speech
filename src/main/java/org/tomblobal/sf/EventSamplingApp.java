@@ -33,23 +33,23 @@ public class EventSamplingApp {
 
         List<String> words = args.length > 1
                 ? Files.readAllLines(Paths.get(args[1]))
-                : Arrays.asList("THANK_YOU");
+                : Arrays.asList("I", "WANT", "DEAF", "JULIA", "COMMUNICATION", "TO_BE_BETTER", "THANK_YOU");
 
         try (
                 //IEventSampler leapMotionSampler = new LeapMotionEventSampler();
-             IEventSampler myoSampler = new MyoEventSampler();) {
+                IEventSampler myoSampler = new MyoEventSampler();) {
             //printData(leapMotionSampler, myoSampler);
 
             words.stream().forEach(w -> {
                 System.out.println("new word! " + w);
-                for (int i = 0; i < 50; i++) {
+                for (int i = 50; i < 75; i++) {
                     final int index = i;
                     //try (IEventSampler realSenseSampler = new RealSenseSampler()) {
-                        sampleWord(w, index, outputPath,
-                                //leapMotionSampler,
-                                myoSampler
-                                //, realSenseSampler
-                                );
+                    sampleWord(w, index, outputPath,
+                            //leapMotionSampler,
+                            myoSampler
+                            //, realSenseSampler
+                    );
 //                    } catch (Exception e) {
 //                        System.err.println("Error: ");
 //                        e.printStackTrace();
