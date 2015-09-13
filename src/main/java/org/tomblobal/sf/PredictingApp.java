@@ -12,6 +12,8 @@ import org.tomblobal.sf.realsense.RealSenseSampler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,14 +34,15 @@ import static java.util
  */
 public class PredictingApp {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
+        List<String> words = Files.readAllLines(Paths.get("C:\\Projects\\sign2speech\\words.txt"));
         try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
              IEventSampler myoSampler = new MyoEventSampler()
         ) {
             //printData(leapMotionSampler, myoSampler);
             ExecutorService taskManager = Executors.newSingleThreadExecutor();
-            SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient());
+            SinglePredicitioner predicitioner = new SinglePredicitioner(Featurizer.create(), 0, new AzureProbabilityClient(words));
 
             boolean loop = true;
             while (loop) {

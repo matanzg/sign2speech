@@ -12,15 +12,19 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.sun.org.apache.xml.internal.utils.StringComparable;
 import org.json.JSONArray;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AzureProbabilityClient {
 
+    private final List<String> classes;
     private Gson gson;
 
-    public AzureProbabilityClient() {
+    public AzureProbabilityClient(List<String> classes) {
+        this.classes = classes.stream().sorted().collect(Collectors.toList());
         gson = new GsonBuilder().serializeNulls().create();
     }
 
@@ -53,7 +57,7 @@ public class AzureProbabilityClient {
         }
 
         if (result.getStatus() != 200) {
-                return Optional.absent();
+            return Optional.absent();
         } else {
             Map<String, Double> probabilityMap = getMapFromJson(result.getBody(), features.length);
             Ordering<String> orderDescendingByValue = Ordering.natural().reverse().onResultOf(Functions.forMap(probabilityMap)).compound(Ordering.natural());
@@ -65,13 +69,10 @@ public class AzureProbabilityClient {
         JSONArray values = body.getObject().getJSONObject("Results").getJSONObject("output1").getJSONObject("value")
                 .getJSONArray("Values").getJSONArray(0);
 
-        Map<String, Double> probabilityMap = new HashMap<>(26);
-        for (char curLetter = '1'; curLetter <= '5' && ((numOfFeatures + 2 + curLetter - '1') < values.length()); curLetter++) {
-            probabilityMap.put(String.valueOf(curLetter), values.getDouble(numOfFeatures + 1 + curLetter - '1'));
+        Map<String, Double> probabilityMap = new HashMap<>(classes.size());
+        for (int classIndex = 0; classIndex < classes.size(); classIndex++) {
+            probabilityMap.put(classes.get(classIndex), values.getDouble(numOfFeatures + classIndex));
         }
-        double max =  probabilityMap.values().stream().mapToDouble(x -> x.doubleValue()).max().getAsDouble();
-        probabilityMap.clear();
-        probabilityMap.put(values.getString(values.length() - 1), max);
 
         return probabilityMap;
     }
