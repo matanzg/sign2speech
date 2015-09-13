@@ -2,9 +2,12 @@ package org.tomblobal.sf;
 
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.myo.MyoEventSampler;
+import org.tomblobal.sf.realsense.RealSenseSampler;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -30,14 +33,38 @@ public class EventSamplingApp {
         List<String> words = args.length > 1
                 ? Files.readAllLines(Paths.get(args[1]))
                 : Arrays.asList("J", "U", "L", "I", "A");
-        
-        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler()) {
-            try (IEventSampler myoSampler = new MyoEventSampler()) {
-                //printData(leapMotionSampler, myoSampler);
 
-                words.stream().forEach(w -> sampleWord(w, outputPath, leapMotionSampler, myoSampler));
-                System.exit(0);
-            }
+        try (IEventSampler leapMotionSampler = new LeapMotionEventSampler();
+            IEventSampler myoSampler = new MyoEventSampler()) {
+
+            //printData(leapMotionSampler, myoSampler);
+
+            words.stream().forEach(w -> {
+
+                File realSenseOutput = new File("realsenseoutput.csv");
+                try {
+                    realSenseOutput.createNewFile();
+                    // Start Matan's program
+
+                    try (IEventSampler realSenseSampler = new RealSenseSampler(realSenseOutput)) {
+                        sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
+                    } catch (Exception e) {
+                        System.err.println("Error: ");
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+
+                    // Stop Matan's program
+                    Thread.sleep(30);
+                    realSenseOutput.delete();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+            System.exit(0);
+
         } catch (Exception e) {
             System.err.println("Error: ");
             e.printStackTrace();
