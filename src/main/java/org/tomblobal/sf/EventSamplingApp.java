@@ -48,7 +48,7 @@ public class EventSamplingApp {
                             .start();
 
                     Thread.sleep(1000);
-                    
+
                     try (IEventSampler realSenseSampler = new RealSenseSampler(realSenseOutput)) {
                         sampleWord(w, outputPath, leapMotionSampler, myoSampler, realSenseSampler);
                     } catch (Exception e) {

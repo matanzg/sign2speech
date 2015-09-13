@@ -21,6 +21,7 @@ public class TrainingApp {
 
     public static void main(String[] args) throws IOException {
         String dataFolder = args[0];
+        //String dataFolder = "C:\\Outputs\\Julia\\Neutral";
 
         Featurizer featurizer = Featurizer.create();
         List<String> outputRows = Files.walk(Paths.get(dataFolder))
@@ -30,7 +31,7 @@ public class TrainingApp {
                 .sorted()
                 .collect(Collectors.toList());
 
-        Path outputPath = Paths.get(dataFolder, "output_naive.csv");
+        Path outputPath = Paths.get(dataFolder, "output_RS_and_Myo__all_features__3_rows__Neutral.csv");
         Files.write(outputPath, outputRows);
     }
 
