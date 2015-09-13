@@ -3,9 +3,5 @@ want
 deaf
 communication
 to_be_better
-J
-U
-L
-I
-A
+Julia
 thank_you
