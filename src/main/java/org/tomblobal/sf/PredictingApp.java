@@ -4,13 +4,11 @@ import com.google.common.base.Optional;
 import com.google.common.collect.TreeBasedTable;
 import org.tomblobal.sf.leapmotion.LeapMotionEventSampler;
 import org.tomblobal.sf.ml.AzureProbabilityClient;
-import org.tomblobal.sf.ml.DummyNormalizer;
 import org.tomblobal.sf.ml.Featurizer;
 import org.tomblobal.sf.ml.SinglePredicitioner;
 import org.tomblobal.sf.myo.MyoEventSampler;
 import org.tomblobal.sf.realsense.RealSenseSampler;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,23 +21,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
-import static java.util
-        .stream.Collectors.toMap;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Hello world!
  */
 public class PredictingApp {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
+        WordListener wordListener = new WordCanvas();
         List<String> words = Files.readAllLines(Paths.get("C:\\Projects\\sign2speech\\words.txt"));
         try (
                 //IEventSampler leapMotionSampler = new LeapMotionEventSampler();
-             IEventSampler myoSampler = new MyoEventSampler()
+                IEventSampler myoSampler = new MyoEventSampler()
         ) {
             //printData(leapMotionSampler, myoSampler);
             ExecutorService taskManager = Executors.newSingleThreadExecutor();
@@ -48,13 +45,14 @@ public class PredictingApp {
             boolean loop = true;
             while (loop) {
                 //try (IEventSampler realSenseSampler = new RealSenseSampler()) {
-                    String guess = guessWord(predicitioner, taskManager,
-                            //leapMotionSampler,
-                            myoSampler
-                            // , realSenseSampler
-                            );
-                    System.out.println("Could it be........... " + guess);
+                String guess = guessWord(predicitioner, taskManager,
+                        //leapMotionSampler,
+                        myoSampler
+                        // , realSenseSampler
+                );
+                System.out.println("Could it be........... " + guess);
                 //}
+                wordListener.onWordChange(guess);
             }
             System.exit(0);
         } catch (Exception e) {
