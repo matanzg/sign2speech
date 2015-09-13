@@ -1,5 +1,6 @@
 package org.tomblobal.sf.realsense;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.io.input.Tailer;
 import org.tomblobal.sf.IEventSampler;
 
@@ -18,7 +19,9 @@ public class RealSenseSampler implements IEventSampler {
 
     @Override
     public Map<String, Double> sample() {
-        return lastRow.getAndSet(null);
+        Map<String, Double> values = lastRow.getAndSet(null);
+        if (values == null) values = Maps.newHashMap();
+        return values;
     }
 
     @Override
